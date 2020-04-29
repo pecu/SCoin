@@ -1,17 +1,7 @@
-# light-backend
+# Basic light web wallet
 
 ## Description:
-Zhushan light-token backend
+A basic light web wallet
 
 ## Dependency packages
-$ pip3 install pyota flask flask_login flask_cors 
-
-## Quick start
-$ cd tools/
-$ python3 init.py
-
-## API document
-- documents/api.md
-
-## Example scripts
-- examples/
+$ pip3 install flask flask_login flask_cors 

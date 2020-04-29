@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+{% block content %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="static/js/get_current_user.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $("#pay_form").submit(function (e) {
+		//disable the submit button
+		$("#submit").attr("disabled", true);
+
+		return true;
+        });
+    });
+</script>
+
+<div class="container">
+    <div class="col-md-5">
+        <div class="form-area">
+            <form id="pay_form" role="form" action="/signup" method="post">
+                <br style="clear:both">
+                <h3 style="margin-bottom: 25px; text-align: center;">Sign Up</h3>
+                <div class="form-group">
+		    <p> Nickname: <input type="text" class="form-control" id="name" name="name" value="" />
+		    <p> Password: <input type="password" class="form-control" id="password" name="password" value="" />
+		    <p> Public key: <input type="text" class="form-control" id="pub_key" name="pub_key" value="" />
+                </div>
+
+                <button type="submit" id="submit" name="submit" class="btn btn-primary pull-right">SignUp!</button>
+                </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,17 +1,11 @@
+import requests
 import json
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, redirect
 from flask_login import login_user, LoginManager, \
         UserMixin, login_required, current_user, logout_user
 from flask_cors import CORS
-from config import VERSION, ADMIN_ACCESS_TOKEN
-from app.did import DID
-from app.blockchain.tangle import find_transaction_message
-from app.cb import set_layer_1
-from app.token import layer_to_layer, check_token_valid, \
-        get_user_balance, snapshot, get_txn_enseed
-from app.cluster import check_alliance, bridge_cluster
-from app.auth import check_api_key, set_user_password, \
-        check_password, check_permission
+from app.auth import check_api_key, get_api_key, new_user
+from config import ADMIN_ACCESS_TOKEN, URL_LIGHT_BACKEND 
 
 app = Flask(__name__)
 CORS(app)
@@ -30,148 +24,119 @@ user_now = ""
 class User(UserMixin):
     pass
 
-@login_manager.user_loader  
+@login_manager.user_loader
 def user_loader(username):
-    user = User()  
+    user = User()
     user.id = username
 
     return user
 
+## Basic wallet
 @app.route('/')
 def index():
-    return 'Hello! I am the backend of light token, version: ' + VERSION
+    username = "Guest"
 
-## Accounts
-@app.route('/new_did', methods=['POST'])
-def new_did():
-    if request.method == 'POST':
-        data = request.get_json()
-        x_api_key = request.headers.get('X-API-key')
-        
-        did = DID()
-        hash_bundle = did.new_did(x_api_key, data)
+    if current_user is not None and current_user.is_authenticated:
+        username =  current_user.id
 
-        return str(hash_bundle)
+    return render_template('index.html', url_light_backend = URL_LIGHT_BACKEND, \
+            username = username)
 
-@app.route('/did', methods=['GET'])
-def did():
+## Login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
     if request.method == 'GET':
-        hash_did = request.args.get('hash')
+        return render_template('login.html')
 
-        ## Read from blockchain
-        content = find_transaction_message(hash_did)
+    if request.method == 'POST':
+        data = request.form;
 
-    return content
+        # Login
+        if check_api_key(data["name"], data["password"]) == True:
+            user = User()
+            user.id = data["name"]
+            login_user(user, remember = True)
 
-## Layer-1 bank
-@app.route('/set_layer1', methods=['GET'])
-def set_layer1():
+            return redirect("/")
+
+## Logout
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect("/")
+
+## SignUp
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
     if request.method == 'GET':
-        ## Authentication
-        x_api_key = request.headers.get('X-API-key')
-        if check_permission("cb", x_api_key) == False:
-            return "Authentication fail"
+        return render_template('signup.html')
 
-        ## Set layer-1
-        username = request.args.get('username')
-        set_layer_1(username)
-
-    return "OK"
-
-## Token
-@app.route('/send_token', methods=['POST'])
-def send():
     if request.method == 'POST':
-        data = request.get_json()
-        x_api_key = request.headers.get('X-API-key')
+        data = request.form;
 
-        # Permission check
-        if check_permission(data["sen"], x_api_key) == False:
-            return {"status":"error", "msg":"Permission deny."}
+        # Local
+        if new_user(data) == False:
+            return {"status":"error","msg":"Account already exist."}
 
-        # Transaction
-        result = layer_to_layer(x_api_key, data)
 
-    return result
+        # DID
+        cred_headers = {"X-API-key": data["password"], "Content-Type":"application/json;"}
+        cred = {"method": "light", "name": data["name"], "description": "Zhushan light eID", "pub_key":data["pub_key"]}
 
-@app.route('/get_balance', methods=['GET'])
-def get_balance():
-    balance = get_user_balance(request.args.get('user'))
-    return balance
+        # Request
+        url_sned_token = URL_LIGHT_BACKEND + "/new_did"
+        response = requests.post(url_sned_token, data = json.dumps(cred), headers = cred_headers)
 
-@app.route('/get_enseed', methods=['GET'])
-def get_enseed():
-    enseed = get_txn_enseed(request.args.get('hash'))
-    return enseed
+        return redirect("/login")
 
-## Verify
-@app.route('/verify_token', methods=['POST'])
-def verify_token():
-    if request.method == 'POST':
-        data = request.get_json()
-        x_api_key = request.headers.get('X-API-key')
+## Payment
+@app.route('/pay', methods=['GET', 'POST'])
+def pay():
+    if request.method == 'GET':
+        sender = ""
 
-        # Permission check
-        if check_permission(data["user"], x_api_key) == False:
-            return {"status":"error", "msg":"Permission deny."}
+        if current_user is not None and current_user.is_authenticated:
+            sender =  current_user.id
+
+        receiver = request.args.get('receiver')
         
-        # Verify token
-        if check_token_valid(data["user"], x_api_key, data) == True:
-            return {"status":"valid"}
-        else:
-            return {"status":"invalid"}
-
-## Snapshot
-@app.route('/snapshot', methods=['POST'])
-def snapshot_token():
-     if request.method == 'POST':
-        data = request.get_json()
-        x_api_key = request.headers.get('X-API-key')
-
-        # Permission check
-        if check_permission(data["user"], x_api_key) == False:
-            return {"status":"error", "msg":"Permission deny."}
-        
-        # snapshot
-        txn_hash = snapshot(x_api_key, data)
-
-        return txn_hash
-
-## Get all cluster 
-@app.route('/get_all_cluster', methods=['GET'])
-def get_all_cluster():
-    cluster = ""
-
-    did = DID()
-    cluster = did.get_cluster()
-
-    return cluster
-
-## Bridge
-#### Different backbone:
-#### 1. Use API to bridge accounts
-#### 1-1. Customer API should refer the new_did API
-#### 2. Re-issue token by this API
-#### Same backbone:
-#### 1. Use this API to new DID reference
-#### 2. Re-issue token by this API
-
-# Clutser: Layer-1 or 2 ?
-#          layer-2: Currency issue
-@app.route('/bridge', methods=['POST'])
-def bridge():
+        return render_template('pay.html', url_light_backend = URL_LIGHT_BACKEND, \
+                sender = sender, receiver_id = receiver)
+    
     if request.method == 'POST':
-        data = request.get_json()
-        x_api_key = request.headers.get('X-API-key')
+        if current_user is None or not current_user.is_authenticated:
+            return redirect("/login")
 
-        # Chcek permission for customer CB
-        if not check_alliance(data["name"], x_api_key):
-            return {"status":"error", "msg":"Not in the alliance"}
+        data = request.form;
 
-        # Bridge cluster
-        result = bridge_cluster(data)
+        # Get balance list
+        url_balance = URL_LIGHT_BACKEND + "/get_balance?user="
+        list_balance = requests.get(url_balance + str(data["sender"])).text.splitlines()
 
-        return result
+        if len(list_balance) < int(data["cost"]):
+            return render_template('pay.html', msg="not enough")
+
+
+        # Post header / credentials
+        for index in range(int(data["cost"])):
+            cred_headers = {"X-API-key": get_api_key(current_user.id), "Content-Type":"application/json;"}
+            cred = {"sen": data["sender"], "rev": data["receiver"], "method": "2", "description": "Light token" ,"txn":list_balance[index]}
+
+            # Request
+            url_sned_token = URL_LIGHT_BACKEND + "/send_token"
+            response = requests.post(url_sned_token, data = json.dumps(cred), headers = cred_headers)
+        
+        return render_template('pay.html')
+
+## Wallet
+@app.route('/wallet')
+def walet():
+    username = ""
+    if current_user is not None and current_user.is_authenticated:
+        username = current_user.id
+
+    return render_template('wallet.html', url_light_backend = URL_LIGHT_BACKEND, \
+            username = username)
 
 if __name__ == '__main__':
-    app.run(host = '0.0.0.0', port = 8888, debug = True)
+    app.run(host = '0.0.0.0', port = 8889, debug = True)

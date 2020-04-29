@@ -1,6 +1,4 @@
 import os
-from werkzeug.security import generate_password_hash, \
-        check_password_hash
 
 # Check API key
 def check_api_key(user, api_key):
@@ -13,31 +11,23 @@ def check_api_key(user, api_key):
     else:
         return True
 
-def set_user_password(data):
-    # Check user exist
-    if not os.path.isdir("accounts/" + data["name"]):
-        return False
+def get_api_key(username):
+    api_key_from_file = ""
+    with open("accounts/" + username + "/x-api-key.txt", 'r') as outfile:
+        api_key_from_file = outfile.read().splitlines()[0]
 
-    with open("accounts/" + data["name"] + "/password.hash", 'w') as outfile:
-        outfile.write(generate_password_hash(data["password"]))
+    return api_key_from_file
+
+def new_user(data):
+    # Check username exist
+    if os.path.isdir("accounts/" + data["name"]):
+        return False 
+
+    ## Create account folder on local
+    os.mkdir("accounts/" + data["name"])
+
+    ## Save hash of password
+    with open("accounts/" + data["name"] + "/x-api-key.txt", 'w') as outfile:
+        outfile.write(data["password"])
 
     return True
-
-def get_password_hash(username):
-    with open("accounts/" + username + "/password.hash", 'r') as outfile:
-        return outfile.read()
-
-def check_password(username, password):
-    if check_password_hash(get_password_hash(username), password):
-        return True
-    else:
-        return False
-
-def check_permission(username, api_key):
-    if username != ""  and api_key != "":
-        if check_api_key(username, api_key) == True:
-            return True
-        else:
-            return False
-
-    return False
