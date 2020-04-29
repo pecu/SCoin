@@ -8,6 +8,7 @@ $ pip3 install pyota flask flask_login flask_cors
 
 ## Quick start
 $ cd tools/
+
 $ python3 init.py
 
 ## API document
