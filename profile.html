@@ -1,0 +1,33 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<link href="static/js/profile.css" rel="stylesheet" id="profile-css">
+<script src="static/js/req_balance.js"></script>
+<script>
+    get_balance_by_user("http://localhost:8888/get_balance?user=john");
+</script>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-6 col-md-4 col-lg-3 mt-4">
+    	    <div class="card card-inverse card-info">
+	        <img class="card-img-top" src="https://picsum.photos/200/150/?random">
+	        <div class="card-block">
+		    <figure class="profile">
+		        <img src="https://picsum.photos/200/150/?random" class="profile-avatar" alt="">
+		    </figure>
+		    <h4 class="card-title mt-3">{{username}}</h4>
+		    <div class="meta card-text">
+		        <a>Role: Engineer</a>
+			<div id="balance"></div>
+		    </div>
+		    <div class="card-text">
+		        Hello! I am a software engineer live in Zhushan.
+		    </div>
+	        </div>
+	        <div class="card-footer">
+		    <small>You are currently in Zhushan  </small>
+		    <a href="/pay" class="btn btn-info" role="button">GoPay</a>
+	        </div>
+	    </div>
+        </div>
+    </div>
+</div>
