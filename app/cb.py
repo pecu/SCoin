@@ -17,6 +17,20 @@ def set_layer_1(username):
 
     return True
 
+def rm_layer_1(username):
+    #Find if user exist:
+    list_layer_1 = []
+    with open("cluster/layer_1.txt", 'r') as outfile:
+        list_layer_1 = outfile.read().splitlines()
+        if username in list_layer_1:
+            list_layer_1.remove(username)
+        else:
+            return False
+    with open("cluster/layer_1.txt", 'w') as outfile:
+        for item in list_layer_1:
+            outfile.write(username + '\n')
+    return True
+        
 def verify_cb_api_key(api_key):
 
     api_key_cb = ""

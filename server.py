@@ -6,7 +6,7 @@ from flask_cors import CORS
 from config import VERSION, ADMIN_ACCESS_TOKEN
 from app.did import DID
 from app.blockchain.tangle import find_transaction_message
-from app.cb import set_layer_1
+from app.cb import set_layer_1, rm_layer_1
 from app.token import layer_to_layer, check_token_valid, \
         get_user_balance, snapshot, get_txn_enseed
 from app.cluster import check_alliance, bridge_cluster
@@ -77,6 +77,19 @@ def set_layer1():
         set_layer_1(username)
 
     return "OK"
+
+@app.route('/rm_layer1', methods=['GET'])
+def rm_layer1():
+    if request.method == 'GET':
+        ## Authentication
+        x_api_key = request.headers.get('X-API-key')
+        if check_permission("cb", x_api_key) == False:
+            return "Fail at removing layer1, Authentication fail"
+
+        username = request.args.get('username')
+        rm_layer_1(username)
+
+    return 'Remove ' + username
 
 ## Token
 @app.route('/send_token', methods=['POST'])
