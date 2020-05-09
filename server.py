@@ -89,9 +89,9 @@ def remove_layer1():
         try:
             outcome = remove_layer_1(username)
             if outcome == False:
-               raise NameError
-        except NameError:
-            return "Username hadn't set to layer1 yet, please assign to it first"
+               raise ValueError
+        except ValueError:
+            return "Username hasn't been set to layer1 yet, please assign to it first"
     return 'Remove ' + username
 
 ## Token
