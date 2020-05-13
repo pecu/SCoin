@@ -126,11 +126,11 @@ def get_user_balance(user):
     balanceInfo = {
         'balance': None,
         'tx': [],
-        'status': 'Success',
+        'status': 200,
     }
 
     if not os.path.isdir(PATH_ACCOUNT + user):
-        balanceInfo['status'] = 'Fail'
+        balanceInfo['status'] = 404
         balanceInfo['error'] = '''User doesn't not exist'''
 
         return balanceInfo
