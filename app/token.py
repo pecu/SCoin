@@ -116,15 +116,31 @@ def layer_to_layer(api_key, data):
 
 def get_user_balance(user):
     # Check user exist
+    balanceInfo = {
+        'balance' : None,
+        'tx' : [],
+        'status' : 'Success',
+    }
+
     if not os.path.isdir(PATH_ACCOUNT + user):
-        return ""#{"status":"error", "msg":"User not exist."}
+        balanceInfo['status'] = 'Fail'
+        balanceInfo['error'] = '''User doesn't exist'''
+
+        return balanceInfo
 
     # Check history file exist
     if not os.path.isfile(PATH_ACCOUNT + user + "/history.txt"):
-        return ""#""
+        balanceInfo['balance'] = 0
+        
+        return balanceInfo
 
     with open(PATH_ACCOUNT + user + "/history.txt", 'r') as outfile:
-        return outfile.read()[:-1]
+        for i, l in enumerate(outfile):
+            balanceInfo['tx'].append(l)
+        
+        balanceInfo['balance'] = i + 1
+
+        return balanceInfo
 
 def check_token_valid(user, api_key, data):
     # Get transaction message field    
