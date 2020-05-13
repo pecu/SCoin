@@ -87,6 +87,25 @@ curl https://eid.townway.com.tw:8888/set_layer1?username=john \
         -H 'X-API-key: 95efe65ae128e4562fdba2292b2b3f190845c503' 
 ```
 
+### Remove layer-1
+Remove a username from layer-1
+```
+DELETE /remove_layer1
+```
+
+#### Parameters
+| Name           | Type    | Description                                                                                                                                                                                                 |
+| -------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| X-API-key | string | The CB eID API key (pass with HTTP header) |
+
+#### Response
+"Remove + username"
+
+#### Example
+```shell
+curl -X DELETE http://localhost:8888/remove_layer1?username=zoo -H 'X-API-key: 95efe65ae128e4562fdba2292b2b3f190845c503'
+```
+
 ### Send token
 Send token.
 
