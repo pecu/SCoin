@@ -131,7 +131,7 @@ def get_user_balance(user):
 
     if not os.path.isdir(PATH_ACCOUNT + user):
         balanceInfo['status'] = 404
-        balanceInfo['error'] = '''User doesn't not exist'''
+        balanceInfo['error'] = '''User does not exist'''
 
         return balanceInfo
 
