@@ -14,7 +14,6 @@ def test_new_did(env, client):
         "pub_key": "",
         "method": "light",
         "description": "Scoin light eID"
-
     }
     headers = {
         "Content-Type": "application/json",

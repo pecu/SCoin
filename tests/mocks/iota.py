@@ -1,8 +1,9 @@
 class Bundle():
     def __init__(self, hash=None):
-        if hash == None:
+        if hash is None:
             hash = "RUBXZTNOIYV9EULYYHKEEAHFFQPYMPZIXLVYNPHGBDBDDZERDSJHJAMGOIHHGILZGDYNP9ANJANPHZYDX"
         self.hash = hash
+
 
 class IotaMock():
     def __init__(self, node_url, seed=None):
@@ -15,8 +16,11 @@ class IotaMock():
         }
 
     def find_transactions(self, bundles):
-        if bundles == ["RUBXZTNOIYV9EULYYHKEEAHFFQPYMPZIXLVYNPHGBDBDDZERDSJHJAMGOIHHGILZGDYNP9ANJANPHZYDX"]:
-            return { "hashes": ["KYVEAQJKIYSNH9SGULNSPDFGULCV9DETKWIFUUH9GICWMMYJFRVUSDWFNXIAXBHW9BNNXOKGVOMKZ9999"] }
+        if bundles == [
+                "RUBXZTNOIYV9EULYYHKEEAHFFQPYMPZIXLVYNPHGBDBDDZERDSJHJAMGOIHHGILZGDYNP9ANJANPHZYDX"]:
+            return {"hashes": [
+                "KYVEAQJKIYSNH9SGULNSPDFGULCV9DETKWIFUUH9GICWMMYJFRVUSDWFNXIAXBHW9BNNXOKGVOMKZ9999"]}
+
 
 def iota_mock(node_url, seed=None):
     return IotaMock(node_url, seed)
