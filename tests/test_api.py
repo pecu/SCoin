@@ -7,7 +7,7 @@ import iota
 import app.blockchain.tangle as tangle
 
 
-def test_new_did(env, client):
+def test_new_did_api(env, client):
     letters = string.ascii_letters + string.digits
     data = {
         "name": "".join(random.choice(letters) for i in range(10)),
