@@ -25,8 +25,6 @@ def test_new_did(env):
     with open(PATH_ACCOUNT + data["name"] + "/x-api-key.txt", 'r') as outfile:
         fileapikey = outfile.read().splitlines()
         assert fileapikey[0] == x_api_key
-    shutil.rmtree(PATH_ACCOUNT + "testapi")
-
 
 
 def test_get_DID_from_username(env):
@@ -38,7 +36,6 @@ def test_get_DID_from_username(env):
         "pub_key": ""}
     did.new_did(x_api_key, data)
     assert did.get_DID_from_username("testapi") == "KYVEAQJKIYSNH9SGULNSPDFGULCV9DETKWIFUUH9GICWMMYJFRVUSDWFNXIAXBHW9BNNXOKGVOMKZ9999"
-    shutil.rmtree(PATH_ACCOUNT + "testapi")
 
 def test_get_cluster(env):
     
