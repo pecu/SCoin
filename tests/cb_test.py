@@ -20,13 +20,14 @@ def test_set_layer_1():
 
 def test_remove_layer_1():
     test_username = 'removable'
-    result = remove_layer_1(test_username)
-    assert result
-    with open("cluster/layer_1.txt", 'r') as outfile:
-        list_layer_1 = outfile.read().splitlines()
-    assert test_username not in list_layer_1
     with open("cluster/layer_1.txt", 'a') as outfile:
         outfile.write(test_username + "\n")
+    result = remove_layer_1(test_username)
+    assert result == True
+    with open("cluster/layer_1.txt", 'r') as outfile:
+        list_layer_1 = outfile.read().splitlines()
+        assert test_username not in list_layer_1
+    
     return True
 
 
