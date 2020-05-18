@@ -12,7 +12,8 @@ did = DID()
 
 PATH_ACCOUNT = "./accounts/"
 
-def test_new_did():
+
+def test_new_did(env):
     x_api_key = 'testapikey'
     data = {
         "method": "light",
@@ -28,7 +29,7 @@ def test_new_did():
 
 
 
-def test_get_DID_from_username():
+def test_get_DID_from_username(env):
     x_api_key = 'testapikey'
     data = {
         "method": "light",
@@ -39,10 +40,18 @@ def test_get_DID_from_username():
     assert did.get_DID_from_username("testapi") == "KYVEAQJKIYSNH9SGULNSPDFGULCV9DETKWIFUUH9GICWMMYJFRVUSDWFNXIAXBHW9BNNXOKGVOMKZ9999"
     shutil.rmtree(PATH_ACCOUNT + "testapi")
 
-def test_get_cluster():
+def test_get_cluster(env):
     
     test_cluster = {
-        "cb": "VFBDBPNWXWDFQFBZQCOCQJVGFPJIQPSUVVMESTFUBNGJXUARNTRRZMUPQ9SSORFXDDRCZWU9QZKVZ9999",
+        "cb": "KYVEAQJKIYSNH9SGULNSPDFGULCV9DETKWIFUUH9GICWMMYJFRVUSDWFNXIAXBHW9BNNXOKGVOMKZ9999",
         "layer-1": []}
+    x_api_key = '9jhy765ae128e45629ihbn292b2b3f19084ijygv'
+    data = {
+        "method": "light",
+        "name": "cb",
+        "description": "Zhushan light eID",
+        "pub_key": ""
+        }
+    did.new_did(x_api_key, data)
     res = did.get_cluster()
     assert res == test_cluster
