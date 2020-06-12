@@ -4,6 +4,11 @@ from app.rsa import encrypt_with_pub_key
 from app.token import new_seed
 
 def set_layer_1(username):
+    # Check if the username in the accounts
+    list_accounts = os.listdir("accounts")
+    if username not in list_accounts:
+        return False
+
     # Search for duplicate
     with open("cluster/layer_1.txt", 'r') as outfile:
         list_layer_1 = outfile.read().splitlines()
