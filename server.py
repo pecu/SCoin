@@ -74,7 +74,8 @@ def set_layer1():
 
         ## Set layer-1
         username = request.args.get('username')
-        set_layer_1(username)
+        if set_layer_1(username) == False:
+            return "No such account or exist already."
 
     return "OK"
 

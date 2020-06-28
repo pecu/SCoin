@@ -28,9 +28,12 @@ def load_token_json_obj():
 def get_txn_enseed(txn_hash):
     enseed = ""
 
-    msg_txn = find_transaction_message(txn_hash)
-    obj_msg = json.loads(msg_txn)
-    enseed = obj_msg["enseed"]
+    try:
+        msg_txn = find_transaction_message(txn_hash)
+        obj_msg = json.loads(msg_txn)
+        enseed = obj_msg["enseed"]
+    except:
+        return ""
 
     return enseed
 
@@ -68,13 +71,20 @@ def layer_to_layer(api_key, data):
 
     # Get seed
     seed = ""
-    if data["txn"] == "" or data["method"] == "1":
+    if data["txn"] == "" and data["method"] == "1":
         # Method 1 (CB to layer-1) or create a new branch
         seed = new_seed(data["sen"])
     else:
         # Method 2 (layer to layer)
         # Decrypt sender enseed
+        if data["txn"] == "":
+            return {"status":"error","msg":"invalid token"}
+
         enseed = get_txn_enseed(data["txn"])
+
+        if enseed == "":
+            return {"status":"error","msg":"invalid token"}
+
         seed = decrypt_with_pri_key(data["sen"], api_key, enseed)
 
     # Get receiver public key
@@ -99,7 +109,7 @@ def layer_to_layer(api_key, data):
         outfile.write(hash_txn + "\n")
 
     ## Update history list
-    if data["txn"] != "" or data["method"] != "1":
+    if data["txn"] != "" and data["method"] != "1":
         list_balance = []
         with open(PATH_ACCOUNT + data["sen"] + "/history.txt", 'r') as outfile:
             list_balance = outfile.read().splitlines()
