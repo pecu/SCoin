@@ -4,6 +4,9 @@ from werkzeug.security import generate_password_hash, \
 
 # Check API key
 def check_api_key(user, api_key):
+    if not os.path.isdir("accounts/" + user):
+        return False
+
     api_key_from_file = ""
     with open("accounts/" + user + "/x-api-key.txt", 'r') as outfile:
         api_key_from_file = outfile.read().splitlines()[0]
