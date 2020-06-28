@@ -28,9 +28,12 @@ def load_token_json_obj():
 def get_txn_enseed(txn_hash):
     enseed = ""
 
-    msg_txn = find_transaction_message(txn_hash)
-    obj_msg = json.loads(msg_txn)
-    enseed = obj_msg["enseed"]
+    try:
+        msg_txn = find_transaction_message(txn_hash)
+        obj_msg = json.loads(msg_txn)
+        enseed = obj_msg["enseed"]
+    except:
+        return ""
 
     return enseed
 
@@ -78,6 +81,10 @@ def layer_to_layer(api_key, data):
             return {"status":"error","msg":"invalid token"}
 
         enseed = get_txn_enseed(data["txn"])
+
+        if enseed == "":
+            return {"status":"error","msg":"invalid token"}
+
         seed = decrypt_with_pri_key(data["sen"], api_key, enseed)
 
     # Get receiver public key
