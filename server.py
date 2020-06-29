@@ -12,6 +12,7 @@ from app.token import layer_to_layer, check_token_valid, \
 from app.cluster import check_alliance, bridge_cluster
 from app.auth import check_api_key, set_user_password, \
         check_password, check_permission
+from error import InvalidUsage
 
 app = Flask(__name__)
 CORS(app)
@@ -34,8 +35,13 @@ class User(UserMixin):
 def user_loader(username):
     user = User()  
     user.id = username
-
     return user
+
+@app.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
 
 @app.route('/')
 def index():
