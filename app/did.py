@@ -1,5 +1,6 @@
 import os
 import json
+import iota
 from app.rsa import gen_key_pair
 from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message 
@@ -33,8 +34,17 @@ class DID():
                 outfile.write(pri_key)
         
         ## Send to Tangle
-        hash_bundle = send_transfer(data, receiver_address)
-        hash_txn = get_txn_hash_from_bundle(hash_bundle)
+        bundle = send_transfer(data, receiver_address)
+        # hash_txn = get_txn_hash_from_bundle(hash_bundle)
+        txn = None
+        for tx in bundle.transactions:
+            msg = find_transaction_message(tx.hash)
+            if msg == json.dumps(data):
+                txn = tx
+                break
+        if txn == None:
+            raise InvalidUsage("Internal server error", 500)
+        hash_txn = str(tx.hash)
         
         ## Write Profile
         data["id"] = hash_txn
