@@ -8,6 +8,8 @@ from app.rsa import encrypt_with_pub_key, decrypt_with_pri_key
 from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message, generate_new_address, get_account_data
 from app.auth import check_api_key
+from app.cb import *
+from error import InvalidUsage
 
 PATH_ACCOUNT = "./accounts/"
 
@@ -72,6 +74,10 @@ def layer_to_layer(api_key, data):
     # Get seed
     seed = ""
     if data["txn"] == "" and data["method"] == "1":
+        if data["sen"] != "cb":
+            raise InvalidUsage("Permission denied.", 403)
+        if not in_layer_1(data["rev"]):
+            raise InvalidUsage("User is not in the layer1 list.", 403)
         # Method 1 (CB to layer-1) or create a new branch
         seed = new_seed(data["sen"])
     else:
