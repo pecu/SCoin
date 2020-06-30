@@ -8,4 +8,6 @@ do
       -H 'Content-Type: application/json' \
       -H 'X-API-key: 9jhy765ae128e45629ihbn292b2b3f19084ijygv' \
       -d '{"sen": "cb", "rev": "'${username}'", "method": "1", "description": "SCU Token", "txn":""}';
+
+  echo ""
 done
