@@ -8,6 +8,8 @@ from app.rsa import encrypt_with_pub_key, decrypt_with_pri_key
 from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message, generate_new_address, get_account_data
 from app.auth import check_api_key
+from error import InvalidUsage
+from db import transaction
 
 PATH_ACCOUNT = "./accounts/"
 
@@ -101,10 +103,29 @@ def layer_to_layer(api_key, data):
     cred["address"] = address
 
     ## Send to Tangle
-    hash_bundle = send_transfer(cred, address, seed)
-    hash_txn = get_txn_hash_from_bundle(hash_bundle)
+    bundle = send_transfer(cred, address, seed)
+    # hash_txn = get_txn_hash_from_bundle(bundle.hash)
+    txn = None
+    for tx in bundle.transactions:
+        msg = find_transaction_message(tx.hash)
+        if msg == json.dumps(cred):
+            txn = tx
+            break
+    if txn == None:
+        raise InvalidUsage("Internal server error", 500)
+
+    ## Insert into database
+    obj = {
+            "hash": txn.hash,
+            "sender": data["sen"],
+            "receiver": data["rev"],
+            "description": json.dumps(cred),
+            "timestamp": tx.timestamp
+          }
+    transaction.insert(obj)
 
     ## Save to history
+    hash_txn = txn.hash
     with open(PATH_ACCOUNT + data["rev"] + "/history.txt", 'a') as outfile:
         outfile.write(hash_txn + "\n")
 
