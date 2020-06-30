@@ -31,7 +31,7 @@ def send_transfer(data, receiver_address, seed = SEED):
     except Exception as e:
         print(e)
 
-    return bundle['bundle'].hash
+    return bundle['bundle']
 
 def find_transaction_message(hash_txn):
     # Iota instance

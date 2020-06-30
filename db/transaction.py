@@ -14,7 +14,7 @@ def insert(obj):
 def select_by_timestamp(start, end):
     db = connect.connectdb()
     c = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    c.execute("SELECT * FROM transactions WHERE timestamp >= (%s) AND timestamp <= (%s);", (start, end))
+    c.execute("SELECT * FROM transactions WHERE timestamp >= (%s) AND timestamp <= (%s) ORDER BY timestamp;", (start, end))
     ret = c.fetchall()
     db.close()
     return ret

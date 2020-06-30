@@ -14,6 +14,7 @@ from app.auth import check_api_key, set_user_password, \
         check_password, check_permission
 from error import InvalidUsage
 from utils.user import user_exist
+from db import transaction
 
 app = Flask(__name__)
 CORS(app)
@@ -199,6 +200,14 @@ def bridge():
         result = bridge_cluster(data)
 
         return result
+
+@app.route('/get_transactions_by_timestamp', methods=['GET'])
+def get_transactions_by_timestamp():
+    start = request.args.get("start")
+    end = request.args.get("end")
+
+    txns = transaction.select_by_timestamp(start, end)
+    return jsonify(txns)
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', port = 8888, debug = True)
