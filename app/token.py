@@ -3,12 +3,13 @@ import string
 import random
 import json
 import os
+import iota
 from app.did import DID
 from app.rsa import encrypt_with_pub_key, decrypt_with_pri_key
 from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message, generate_new_address, get_account_data
 from app.auth import check_api_key
-from app.cb import *
+from utils.layer import in_layer_1
 from error import InvalidUsage
 from db import transaction
 
@@ -121,16 +122,16 @@ def layer_to_layer(api_key, data):
 
     ## Insert into database
     obj = {
-            "hash": txn.hash,
+            "hash": str(txn.hash),
             "sender": data["sen"],
             "receiver": data["rev"],
             "description": json.dumps(cred),
             "timestamp": tx.timestamp
           }
     transaction.insert(obj)
+    hash_txn = str(tx.hash)
 
     ## Save to history
-    hash_txn = txn.hash
     with open(PATH_ACCOUNT + data["rev"] + "/history.txt", 'a') as outfile:
         outfile.write(hash_txn + "\n")
 

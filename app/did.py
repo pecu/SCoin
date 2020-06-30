@@ -1,5 +1,6 @@
 import os
 import json
+import iota
 from app.rsa import gen_key_pair
 from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message 
@@ -43,7 +44,7 @@ class DID():
                 break
         if txn == None:
             raise InvalidUsage("Internal server error", 500)
-        hash_txn = txn.hash
+        hash_txn = str(tx.hash)
         
         ## Write Profile
         data["id"] = hash_txn
