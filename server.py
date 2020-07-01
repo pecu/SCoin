@@ -13,7 +13,7 @@ from app.cluster import check_alliance, bridge_cluster
 from app.auth import check_api_key, set_user_password, \
         check_password, check_permission
 from error import InvalidUsage
-from utils.user import user_exist
+from utils.user import user_exist, get_total_user
 from db import transaction
 
 app = Flask(__name__)
@@ -209,5 +209,11 @@ def get_transactions_by_timestamp():
     txns = transaction.select_by_timestamp(start, end)
     return jsonify(txns)
 
+
+@app.route('/info', methods=['GET'])
+def info():
+    ret = { "totalUser": get_total_user() }
+    return jsonify(ret)
+    
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', port = 8888, debug = True)
