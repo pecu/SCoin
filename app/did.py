@@ -4,6 +4,8 @@ import iota
 from app.rsa import gen_key_pair
 from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message 
+from db import user
+from utils.user import make_password_hash
 
 PATH_ACCOUNT = "./accounts/"
 receiver_address = "ILXW9VMJQVFQVKVE9GUZSODEMIMGOJIJNFAX9PPJHYQPUHZLTWCJZKZKCZYKKJJRAKFCCNJN9EWOW9N9YDGZDDQDDC"
@@ -46,6 +48,16 @@ class DID():
             raise InvalidUsage("Internal server error", 500)
         hash_txn = str(tx.hash)
         
+        ## Insert into database
+        user_obj = {
+            "username": data["name"],
+            "hash": hash_txn,
+            "created_at": txn.timestamp,
+            "description": data["description"],
+            "password": make_password_hash(x_api_key)
+        }
+        user.insert(user_obj)
+
         ## Write Profile
         data["id"] = hash_txn
         with open(PATH_ACCOUNT + data["name"] + "/profile.json", 'w') as outfile:

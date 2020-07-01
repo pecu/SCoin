@@ -10,3 +10,12 @@ CREATE TABLE transactions(
   description TEXT,
   timestamp INT
 );
+
+CREATE TABLE users(
+  id SERIAL PRIMARY KEY,
+  hash VARCHAR(100) NOT NULL UNIQUE,
+  username VARCHAR(100) NOT NULL,
+  created_at INT,
+  description TEXT,
+  password VARCHAR(200) NOT NULL
+);
