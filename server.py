@@ -14,7 +14,7 @@ from app.auth import check_api_key, set_user_password, \
         check_password, check_permission
 from error import InvalidUsage
 from utils.user import user_exist, get_total_user
-from db import transaction
+from db import transaction, user
 
 app = Flask(__name__)
 CORS(app)
@@ -209,6 +209,18 @@ def get_transactions_by_timestamp():
     txns = transaction.select_by_timestamp(start, end)
     return jsonify(txns)
 
+
+@app.route('/get_users_by_timestamp', methods=['GET'])
+def get_users_by_timestamp():
+    start = request.args.get("start")
+    end = request.args.get("end")
+
+    users = user.select_by_timestamp(start, end)
+    for u in users:
+        u.pop("id", None)
+        u.pop("password", None)
+
+    return jsonify(users)
 
 @app.route('/info', methods=['GET'])
 def info():
