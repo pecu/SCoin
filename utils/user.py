@@ -7,3 +7,5 @@ def user_exist(user):
         return False
     return True
 
+def get_total_user():
+    return len(os.listdir("accounts/"))
