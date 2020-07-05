@@ -6,6 +6,8 @@ from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message 
 from db import user
 from utils.user import make_password_hash
+from error import InvalidUsage
+
 
 PATH_ACCOUNT = "./accounts/"
 receiver_address = "ILXW9VMJQVFQVKVE9GUZSODEMIMGOJIJNFAX9PPJHYQPUHZLTWCJZKZKCZYKKJJRAKFCCNJN9EWOW9N9YDGZDDQDDC"
@@ -17,7 +19,7 @@ class DID():
     def new_did(self, x_api_key, data):
         # Check username exist
         if os.path.isdir(PATH_ACCOUNT + data["name"]):
-            return {"status":"error","msg":"Account already exist."}
+            raise InvalidUsage("Account already exist", 409)
 
         # create DID
 

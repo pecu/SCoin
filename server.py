@@ -78,12 +78,12 @@ def set_layer1():
         ## Authentication
         x_api_key = request.headers.get('X-API-key')
         if check_permission("cb", x_api_key) == False:
-            return "Authentication fail"
+            raise InvalidUsage("Authentication fail", 403)
 
         ## Set layer-1
         username = request.args.get('username')
         if set_layer_1(username) == False:
-            return "No such account or exist already."
+            raise InvalidUsage("No such account or account already exist", 400)
 
     return "OK"
 
@@ -93,14 +93,14 @@ def remove_layer1():
         ## Authentication
         x_api_key = request.headers.get('X-API-key')
         if check_permission("cb", x_api_key) == False:
-            return "Fail at removing layer1, Authentication fail"
+            raise InvalidUsage("Fail at removing layer1, Authentication fail", 403)
         username = request.args.get('username')
         try:
             outcome = remove_layer_1(username)
             if outcome == False:
                raise ValueError
         except ValueError:
-            return "Username hasn't been set to layer1 yet, please assign to it first"
+            raise InvalidUsage("Username hasn't been set to layer1 yet, please assign to it first", 400)
     return 'Remove ' + username
 
 ## Token
@@ -115,7 +115,7 @@ def send():
 
         # Permission check
         if check_permission(data["sen"], x_api_key) == False:
-            return {"status":"error", "msg":"Permission deny."}
+            raise InvalidUsage("Permission deny.", 403)
 
         # Transaction
         result = layer_to_layer(x_api_key, data)
@@ -141,13 +141,13 @@ def verify_token():
 
         # Permission check
         if check_permission(data["user"], x_api_key) == False:
-            return {"status":"error", "msg":"Permission deny."}
+            raise InvalidUsage("Permission deny", 403)
         
         # Verify token
         if check_token_valid(data["user"], x_api_key, data) == True:
             return {"status":"valid"}
         else:
-            return {"status":"invalid"}
+            return InvalidUsage("Token invalid", 400)
 
 ## Snapshot
 @app.route('/snapshot', methods=['POST'])
@@ -158,7 +158,7 @@ def snapshot_token():
 
         # Permission check
         if check_permission(data["user"], x_api_key) == False:
-            return {"status":"error", "msg":"Permission deny."}
+            raise InvalidUsage("Permission deny", 403)
         
         # snapshot
         txn_hash = snapshot(x_api_key, data)
@@ -194,7 +194,7 @@ def bridge():
 
         # Chcek permission for customer CB
         if not check_alliance(data["name"], x_api_key):
-            return {"status":"error", "msg":"Not in the alliance"}
+            raise InvalidUsage("Not in the alliance", 400)
 
         # Bridge cluster
         result = bridge_cluster(data)
