@@ -67,7 +67,7 @@ def layer_to_layer(api_key, data):
 
     # Check receiver exist
     if not os.path.isdir("accounts/" + data["rev"]):
-        raise InvalidUsage("Receiver does not exits", 404)
+        raise InvalidUsage("Receiver does not exist", 404)
 
     # Get/Set receiver DID ID
     id_receiver = did.get_DID_from_username(data["rev"])
