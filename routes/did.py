@@ -24,3 +24,12 @@ def did():
         content = find_transaction_message(hash_did)
 
     return content
+
+@did_blueprint.route('/get_all_cluster', methods=['GET'])
+def get_all_cluster():
+    cluster = ""
+
+    did = DID()
+    cluster = did.get_cluster()
+
+    return cluster
