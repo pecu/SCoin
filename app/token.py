@@ -52,7 +52,7 @@ def check_token_in_history(user, txn):
 def layer_to_layer(api_key, data):
     if data["txn"] != "":
         if check_token_in_history(data["sen"], data["txn"]) == False:
-            return {"status":"error","msg":"No this token in wallet"}
+            raise InvalidUsage("Token not found.", 404)
 
     # Load basic token cred
     cred = load_token_json_obj()
@@ -67,7 +67,7 @@ def layer_to_layer(api_key, data):
 
     # Check receiver exist
     if not os.path.isdir("accounts/" + data["rev"]):
-        return {"status":"error", "msg":"Receiver not exist."}
+        raise InvalidUsage("Receiver does not exist", 404)
 
     # Get/Set receiver DID ID
     id_receiver = did.get_DID_from_username(data["rev"])
@@ -75,7 +75,9 @@ def layer_to_layer(api_key, data):
 
     # Get seed
     seed = ""
-    if data["txn"] == "" and data["method"] == "1":
+    if data["method"] == "1":
+        if data["txn"] != "":
+            raise InvalidUsage("Txn should be empty.", 400)
         if data["sen"] != "cb":
             raise InvalidUsage("Permission denied.", 403)
         if not in_layer_1(data["rev"]):
@@ -86,12 +88,12 @@ def layer_to_layer(api_key, data):
         # Method 2 (layer to layer)
         # Decrypt sender enseed
         if data["txn"] == "":
-            return {"status":"error","msg":"invalid token"}
+            raise InvalidUsage("Invalid token", 400) 
 
         enseed = get_txn_enseed(data["txn"])
 
         if enseed == "":
-            return {"status":"error","msg":"invalid token"}
+            raise InvalidUsage("Invalid token", 400)
 
         seed = decrypt_with_pri_key(data["sen"], api_key, enseed)
 
