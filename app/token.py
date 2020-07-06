@@ -75,7 +75,9 @@ def layer_to_layer(api_key, data):
 
     # Get seed
     seed = ""
-    if data["txn"] == "" and data["method"] == "1":
+    if data["method"] == "1":
+        if data["txn"] != "":
+            raise InvalidUsage("Txn should be empty.", 400)
         if data["sen"] != "cb":
             raise InvalidUsage("Permission denied.", 403)
         if not in_layer_1(data["rev"]):
