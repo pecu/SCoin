@@ -1,7 +1,7 @@
 from flask import request, Blueprint
 from app.cluster import check_alliance, bridge_cluster
 
-cluster_blueprint = Blueprint('bridge', __name__)
+cluster_blueprint = Blueprint('cluster', __name__)
 
 ## Bridge
 #### Different backbone:
