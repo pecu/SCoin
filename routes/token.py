@@ -1,0 +1,42 @@
+from flask import request, Blueprint
+from app.token import layer_to_layer, check_token_valid
+from app.auth import check_permission
+from utils.user import user_exist
+from error import InvalidUsage
+
+token_blueprint = Blueprint('token', __name__)
+
+@token_blueprint.route('/send_token', methods=['POST'])
+def send():
+    if request.method == 'POST':
+        data = request.get_json()
+        x_api_key = request.headers.get('X-API-key')
+
+        if not user_exist(data["sen"]):
+            raise InvalidUsage("Sender does not exist.", 404)
+
+        # Permission check
+        if check_permission(data["sen"], x_api_key) == False:
+            raise InvalidUsage("Permission deny.", 403)
+
+        # Transaction
+        result = layer_to_layer(x_api_key, data)
+
+    return result
+
+
+@token_blueprint.route('/verify_token', methods=['POST'])
+def verify_token():
+    if request.method == 'POST':
+        data = request.get_json()
+        x_api_key = request.headers.get('X-API-key')
+
+        # Permission check
+        if check_permission(data["user"], x_api_key) == False:
+            raise InvalidUsage("Permission deny", 403)
+        
+        # Verify token
+        if check_token_valid(data["user"], x_api_key, data) == True:
+            return {"status":"valid"}
+        else:
+            raise InvalidUsage("Token invalid", 400)
