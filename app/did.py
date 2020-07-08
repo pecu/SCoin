@@ -56,7 +56,10 @@ class DID():
             "hash": hash_txn,
             "created_at": txn.timestamp,
             "description": data["description"],
-            "password": make_password_hash(x_api_key)
+            "api_key": make_password_hash(x_api_key),
+            "layer": 0 if data["name"] == "cb" else 2,
+            "public_key": pub_key,
+            "private_key": pri_key
         }
         user.insert(user_obj)
 
@@ -68,20 +71,18 @@ class DID():
         return hash_txn
 
     def get_DID_from_username(self, username):
-        with open(PATH_ACCOUNT + username + "/profile.json", 'r') as outfile:
-            obj_did = json.load(outfile)
-            return obj_did["id"]
+        # with open(PATH_ACCOUNT + username + "/profile.json", 'r') as outfile:
+        #     obj_did = json.load(outfile)
+        #     return obj_did["id"]
+        return user.select_by_username(username)["hash"]
+
 
     def get_pub_key_by_DID(self, DID_id):
-        public_key = ""
-        msg_txn = find_transaction_message(DID_id)
-        obj_msg = json.loads(msg_txn)
+        # public_key = ""
+        # msg_txn = find_transaction_message(DID_id)
+        # obj_msg = json.loads(msg_txn)
 
-        return obj_msg["pub_key"]
-
-    def get_api_key_by_user(self, user):
-        with open(PATH_ACCOUNT + user + "/x-api-key.txt", 'r') as outfile:
-            return outfile.read()
+        return user.select_by_hash(DID_id)["public_key"]
 
     def get_cluster(self):
         cluster = {"cb":"","layer-1":[]}
@@ -92,10 +93,13 @@ class DID():
         cluster["cb"] = did_cb
 
         # Append layer-1
-        with open("cluster/layer_1.txt", 'r') as outfile:
-            for line in outfile:
-                stripped_line = line.strip()
-                layer_did = self.get_DID_from_username(stripped_line)
-                cluster["layer-1"].append(layer_did)
+        # with open("cluster/layer_1.txt", 'r') as outfile:
+        #     for line in outfile:
+        #         stripped_line = line.strip()
+        #         layer_did = self.get_DID_from_username(stripped_line)
+        #         cluster["layer-1"].append(layer_did)
+        users = user.select_by_layer(1)
+        for usr in users:
+            cluster["layer-1"].append(usr["hash"])
 
         return cluster
