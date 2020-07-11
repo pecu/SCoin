@@ -44,12 +44,6 @@ def get_txn_enseed(txn_hash):
     return enseed
 
 def check_token_in_history(username, txn_hash):
-    # with open(PATH_ACCOUNT + user + "/history.txt", 'r') as outfile:
-    #     list_balance = outfile.read().splitlines()
-    #     if txn in list_balance:
-    #         return True
-    #     else:
-    #         return False
     return transaction.select_by_hash(txn_hash)["receiver"] == username
 
 def layer_to_layer(api_key, data):
@@ -169,11 +163,7 @@ def check_token_valid(user, api_key, data):
     seed = decrypt_with_pri_key(user, api_key, enseed)
 
     # Verify address
-    # start = time.time() 
     account_info = get_account_data(seed)
-    # print("account_info : " + str(account_info))
-    # end = time.time()
-    # print("Duration of get_account_data function: " + str(end - start))
     
     latest_address = ""
     try:

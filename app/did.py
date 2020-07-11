@@ -30,7 +30,6 @@ class DID():
 
             ## Send to Tangle
             bundle = send_transfer(data, receiver_address)
-            # hash_txn = get_txn_hash_from_bundle(hash_bundle)
             txn = None
             for tx in bundle.transactions:
                 msg = find_transaction_message(tx.hash)
@@ -63,17 +62,10 @@ class DID():
         return hash_txn
 
     def get_DID_from_username(self, username):
-        # with open(PATH_ACCOUNT + username + "/profile.json", 'r') as outfile:
-        #     obj_did = json.load(outfile)
-        #     return obj_did["id"]
         return user.select_by_username(username)["hash"]
 
 
     def get_pub_key_by_DID(self, DID_id):
-        # public_key = ""
-        # msg_txn = find_transaction_message(DID_id)
-        # obj_msg = json.loads(msg_txn)
-
         return user.select_by_hash(DID_id)["public_key"]
 
     def get_cluster(self):
@@ -84,12 +76,6 @@ class DID():
         did_cb = self.get_DID_from_username("cb")
         cluster["cb"] = did_cb
 
-        # Append layer-1
-        # with open("cluster/layer_1.txt", 'r') as outfile:
-        #     for line in outfile:
-        #         stripped_line = line.strip()
-        #         layer_did = self.get_DID_from_username(stripped_line)
-        #         cluster["layer-1"].append(layer_did)
         users = user.select_by_layer(1)
         for usr in users:
             cluster["layer-1"].append(usr["hash"])
