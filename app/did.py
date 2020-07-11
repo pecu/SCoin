@@ -9,6 +9,7 @@ from utils.user import make_password_hash
 from error import InvalidUsage
 
 
+
 PATH_ACCOUNT = "./accounts/"
 receiver_address = "ILXW9VMJQVFQVKVE9GUZSODEMIMGOJIJNFAX9PPJHYQPUHZLTWCJZKZKCZYKKJJRAKFCCNJN9EWOW9N9YDGZDDQDDC"
 

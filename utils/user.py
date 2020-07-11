@@ -2,11 +2,11 @@ import os
 import random
 import string
 import hashlib
+from db import user
 
-def user_exist(user):
-    if user == "":
-        return False
-    if not os.path.isdir("accounts/" + user):
+def user_exist(username):
+    usr = user.select_by_username(username)
+    if (usr == None)
         return False
     return True
 

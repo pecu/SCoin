@@ -14,3 +14,12 @@ def connectdb(dbname="scoin"):
     except psycopg2.OperationalError as e:
         print("Error connecting database: %s" % (e))
 
+def wrapper(f, *args):
+    db = None if c else connect.connectdb()
+    if c == None:
+        c = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    ret = f(*args, c)
+    if db:
+        db.commit()
+        db.close()
+    return ret

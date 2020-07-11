@@ -2,6 +2,12 @@ import os
 import json
 from app.rsa import encrypt_with_pub_key 
 from app.token import new_seed
+from db import user
+from utils.user import check_password
+from dotenv import load_dotenv
+
+load_dotenv()
+CB_API_KEY = os.getenv("CB_API_KEY")
 
 
 def set_layer_1(username):
@@ -38,12 +44,9 @@ def remove_layer_1(username):
     return True
         
 def verify_cb_api_key(api_key):
+    cb = user.select_by_username("cb")
+    
+    return check_password(api_key, cb["api_key"])
 
-    api_key_cb = ""
-    with open("accounts/cb/x-api-key.txt", 'r') as outfile:
-        api_key_cb = outfile.read().splitlines()[0]
-
-    if api_key_cb == api_key:
-        return True
-    else:
-        return False
+def get_cb_api_key():
+    return CB_API_KEY

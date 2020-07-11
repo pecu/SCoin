@@ -9,8 +9,10 @@ from app.rsa import encrypt_with_pub_key, decrypt_with_pri_key
 from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message, generate_new_address, get_account_data
 from app.auth import check_api_key
+from app.cb import get_cb_api_key
 from utils.layer import in_layer_1
-from error import InvalidUsage
+from utils.user import user_exist
+from error import InvalidUsage, InternalError
 from db import transaction
 
 PATH_ACCOUNT = "./accounts/"
@@ -41,13 +43,14 @@ def get_txn_enseed(txn_hash):
 
     return enseed
 
-def check_token_in_history(user, txn):
-    with open(PATH_ACCOUNT + user + "/history.txt", 'r') as outfile:
-        list_balance = outfile.read().splitlines()
-        if txn in list_balance:
-            return True
-        else:
-            return False
+def check_token_in_history(user, txn_hash):
+    # with open(PATH_ACCOUNT + user + "/history.txt", 'r') as outfile:
+    #     list_balance = outfile.read().splitlines()
+    #     if txn in list_balance:
+    #         return True
+    #     else:
+    #         return False
+    return transaction.select_by_hash(txn_hash)["receiver"] == user
 
 def layer_to_layer(api_key, data):
     if data["txn"] != "":
@@ -66,7 +69,7 @@ def layer_to_layer(api_key, data):
     cred["sen"] = id_sender
 
     # Check receiver exist
-    if not os.path.isdir("accounts/" + data["rev"]):
+    if not user_exist(data["rev"]):
         raise InvalidUsage("Receiver does not exist", 404)
 
     # Get/Set receiver DID ID
@@ -120,7 +123,7 @@ def layer_to_layer(api_key, data):
             txn = tx
             break
     if txn == None:
-        raise InvalidUsage("Internal server error", 500)
+        raise InternalError("Internal server error", 500)
 
     ## Insert into database
     obj = {
@@ -128,42 +131,26 @@ def layer_to_layer(api_key, data):
             "sender": data["sen"],
             "receiver": data["rev"],
             "description": json.dumps(cred),
-            "timestamp": tx.timestamp
+            "timestamp": tx.timestamp,
+            "spent": 0,
           }
     transaction.insert(obj)
     hash_txn = str(tx.hash)
 
-    ## Save to history
-    with open(PATH_ACCOUNT + data["rev"] + "/history.txt", 'a') as outfile:
-        outfile.write(hash_txn + "\n")
 
-    ## Update history list
+    ## Update transaction spent status
     if data["txn"] != "" and data["method"] != "1":
-        list_balance = []
-        with open(PATH_ACCOUNT + data["sen"] + "/history.txt", 'r') as outfile:
-            list_balance = outfile.read().splitlines()
-            try:
-                list_balance.remove(data["txn"])
-            except ValueError:
-                print("No " + data["txn"] + " in history.")
-
-        with open(PATH_ACCOUNT + data["sen"] + "/history.txt", 'w') as outfile:
-             for listitem in list_balance:
-                 outfile.write('%s\n' % listitem)
+        user.spend_transaction(data["txn"])
 
     return hash_txn
 
-def get_user_balance(user):
+def get_user_balance(username):
     # Check user exist
-    if not os.path.isdir(PATH_ACCOUNT + user):
-        return ""#{"status":"error", "msg":"User not exist."}
+    if not user_exist(username):
+        raise InvalidUsage("User does not exist.", 404)
 
-    # Check history file exist
-    if not os.path.isfile(PATH_ACCOUNT + user + "/history.txt"):
-        return ""#""
-
-    with open(PATH_ACCOUNT + user + "/history.txt", 'r') as outfile:
-        return outfile.read()[:-1]
+    txns = transaction.select_unspent_by_username(username)
+    return [tx["hash"] for tx in txns]
 
 def check_token_valid(user, api_key, data):
     # Get transaction message field    
@@ -199,9 +186,6 @@ def snapshot(api_key, data):
     msg_txn = find_transaction_message(data["token"])
     obj_msg = json.loads(msg_txn)
 
-    # Re-set txn information
-    did = DID()
-
     ## Sender
     obj_msg["sen"] = "cb"
 
@@ -218,7 +202,7 @@ def snapshot(api_key, data):
     obj_msg["address"] = ""
 
     # API key
-    api_key_sender = did.get_api_key_by_user("cb")
+    api_key_sender = get_cb_api_key()
 
     # snapshot
     new_token = layer_to_layer(api_key_sender, obj_msg)
