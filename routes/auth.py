@@ -5,20 +5,16 @@ from error import InvalidUsage
 
 auth_blueprint = Blueprint('auth', __name__)
 
-@auth_blueprint.route('/import_account', methods = ['GET'])
+@auth_blueprint.route('/import_account', methods = ['POST'])
 def import_account():
-    if request.method == 'GET':
-        req_name = request.args.get('username')
-        req_pwd = request.args.get('password')
-        print(req_name)
-        print(req_pwd)
-        res = check_account(req_name, req_pwd)
-        #0 => user doesn't exist
-        #1 => user exist
-        #2 => incorrect password
+    if request.method == 'POST':
+        data = request.get_json()
+        req_name = data['name']
+        x_api_key = request.headers.get('X-API-key')
+        res = check_account(req_name, x_api_key)
         if res == 0:
-            raise InvalidUsage("Account not found", 404)
+            raise InvalidUsage("Account not found", 403)
         if res == 2:
-            raise InvalidUsage("Incorrect Password", 404)
+            raise InvalidUsage("Incorrect api key", 403)
         return 'Account authenticated';
 

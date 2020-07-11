@@ -41,15 +41,17 @@ def check_permission(username, api_key):
 
     return False
 
-def check_account(username, password):
+#0 => user doesn't exist                                                                                              
+#1 => user exist
+#2 => incorrect password
+def check_account(username, api_key):
     res = user.query('username', username)
-    #user doesn't exist
-    print(type(res))
-    if res == 0:
+    # user doesn't exist
+    if res == None:
         return 0;
-    res_pwd = res[0][-1]
-    #user exist
-    if check_password(password, res_pwd):
+    res_pwd = res[0]["api_key"]
+    # user exist
+    if check_password(api_key, res_pwd):
         return 1;
-    #password incorrect
+    # password incorrect
     return 2;
