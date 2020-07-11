@@ -43,14 +43,14 @@ def get_txn_enseed(txn_hash):
 
     return enseed
 
-def check_token_in_history(user, txn_hash):
+def check_token_in_history(username, txn_hash):
     # with open(PATH_ACCOUNT + user + "/history.txt", 'r') as outfile:
     #     list_balance = outfile.read().splitlines()
     #     if txn in list_balance:
     #         return True
     #     else:
     #         return False
-    return transaction.select_by_hash(txn_hash)["receiver"] == user
+    return transaction.select_by_hash(txn_hash)["receiver"] == username
 
 def layer_to_layer(api_key, data):
     if data["txn"] != "":
@@ -132,7 +132,7 @@ def layer_to_layer(api_key, data):
             "receiver": data["rev"],
             "description": json.dumps(cred),
             "timestamp": tx.timestamp,
-            "spent": 0,
+            "spent": '0',
           }
     transaction.insert(obj)
     hash_txn = str(tx.hash)
@@ -140,7 +140,7 @@ def layer_to_layer(api_key, data):
 
     ## Update transaction spent status
     if data["txn"] != "" and data["method"] != "1":
-        user.spend_transaction(data["txn"])
+        transaction.spend_transaction(data["txn"])
 
     return hash_txn
 

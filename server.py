@@ -1,4 +1,3 @@
-import json
 from flask import Flask, jsonify
 from flask_cors import CORS
 from config import VERSION, ADMIN_ACCESS_TOKEN
@@ -19,10 +18,6 @@ app.register_blueprint(layer_blueprint)
 app.register_blueprint(auth_blueprint)
 CORS(app)
 
-app.config.update(
-    SECRET_KEY = ADMIN_ACCESS_TOKEN,
-)
-
 @app.errorhandler(InvalidUsage)
 def handle_invalid_usage(error):
     response = jsonify(error.to_dict())
@@ -31,7 +26,7 @@ def handle_invalid_usage(error):
 
 @app.route('/')
 def index():
-    return 'Hello! I am the backend of light token, version: ' + VERSION
+    return 'Hello! I am the backend of scoin, version: ' + VERSION
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8888)

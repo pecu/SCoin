@@ -2,33 +2,33 @@ from .connect import wrapper
 import json
 import psycopg2.extras
 
-def insert(obj):
+def insert(obj, c=None):
     def f(obj, c):
         c.execute("""INSERT INTO transactions 
-                  (hash, sender, receiver, description, timestamp, spent) VALUES (%s, %s, %s, %s, %s);""",
-                  (obj["hash"], obj["sender"], obj["receiver"], obj["description"], obj["timestamp"]))
-    wrapper(f, obj)()
+                  (hash, sender, receiver, description, timestamp, spent) VALUES (%s, %s, %s, %s, %s, %s);""",
+                  (obj["hash"], obj["sender"], obj["receiver"], obj["description"], obj["timestamp"], obj["spent"]))
+    wrapper(f, c, obj)
 
 
-def select_by_timestamp(start, end):
+def select_by_timestamp(start, end, c=None):
     def f(start, end, c):
         c.execute("SELECT * FROM transactions WHERE timestamp >= (%s) AND timestamp <= (%s) ORDER BY timestamp;", (start, end))
         return c.fetchall()
-    return wrapper(f, start, end)()
+    return wrapper(f, c, start, end)
 
-def select_by_hash(hash):
+def select_by_hash(hash, c=None):
     def f(hash, c):
         c.execute("SELECT * FROM transactions WHERE hash = (%s);", (hash, ))
         return c.fetchone()
-    return wrapper(f, hash)()
+    return wrapper(f, c, hash)
 
-def select_unspent_by_username(username):
+def select_unspent_by_username(username, c=None):
     def f(hash, c):
-        c.execute("SELECT * FROM transactions WHERE username = (%s) AND spent = 0;", (username, ))
+        c.execute("SELECT * FROM transactions WHERE receiver = (%s) AND spent = '0';", (username, ))
         return c.fetchall()
-    return wrapper(f, hash)()
+    return wrapper(f, c, hash)
 
-def spend_transaction(hash):
+def spend_transaction(hash, c=None):
     def f(hash, c):
-        c.execute("UPDATE transactions SET spent = 1 WHERE hash = (%s);", (hash, ))
-    return wrapper(f, hash)()
+        c.execute("UPDATE transactions SET spent = '1' WHERE hash = (%s);", (hash, ))
+    return wrapper(f, c, hash)

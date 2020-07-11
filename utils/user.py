@@ -6,7 +6,7 @@ from db import user
 
 def user_exist(username):
     usr = user.select_by_username(username)
-    if (usr == None)
+    if (usr == None):
         return False
     return True
 

@@ -5,7 +5,7 @@ from app.rsa import gen_key_pair
 from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message 
 from db import user
-from utils.user import make_password_hash
+from utils.user import make_password_hash, user_exist
 from error import InvalidUsage
 
 
@@ -19,25 +19,13 @@ class DID():
 
     def new_did(self, x_api_key, data):
         # Check username exist
-        if os.path.isdir(PATH_ACCOUNT + data["name"]):
+        if user_exist(data["name"]):
             raise InvalidUsage("Account already exist", 409)
 
-        # create DID
-
-        ## Create account folder on local
-        os.mkdir(PATH_ACCOUNT + data["name"])
-
-        ## Save hash of password
-        with open(PATH_ACCOUNT + data["name"] + "/x-api-key.txt", 'w') as outfile:
-            outfile.write(x_api_key)
-
-        ## Save key-pair
         if data["pub_key"] == "":
             pub_key, pri_key = gen_key_pair()
             data["pub_key"] = pub_key
-            with open(PATH_ACCOUNT + data["name"] + "/private.pem", 'w') as outfile:
-                outfile.write(pri_key)
-        
+
         ## Send to Tangle
         bundle = send_transfer(data, receiver_address)
         # hash_txn = get_txn_hash_from_bundle(hash_bundle)
@@ -66,8 +54,6 @@ class DID():
 
         ## Write Profile
         data["id"] = hash_txn
-        with open(PATH_ACCOUNT + data["name"] + "/profile.json", 'w') as outfile:
-            json.dump(data, outfile)
         
         return hash_txn
 

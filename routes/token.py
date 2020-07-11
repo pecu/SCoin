@@ -43,8 +43,8 @@ def verify_token():
 
 @token_blueprint.route('/get_balance', methods=['GET'])
 def get_balance():
-    balance = get_user_balance(request.args.get('user'))
-    return balance
+    txn_hashes = get_user_balance(request.args.get('user'))
+    return "\n".join(txn_hashes)
 
 @token_blueprint.route('/get_enseed', methods=['GET'])
 def get_enseed():
