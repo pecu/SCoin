@@ -78,6 +78,8 @@ def layer_to_layer(api_key, data):
         id_receiver = did.get_DID_from_username(data["rev"])
         cred["rev"] = id_receiver
 
+        cred["description"] = data["description"]
+
         # Get seed
         seed = ""
         if data["method"] == "1":
@@ -132,7 +134,7 @@ def layer_to_layer(api_key, data):
                 "hash": str(txn.hash),
                 "sender": data["sen"],
                 "receiver": data["rev"],
-                "description": json.dumps(cred),
+                "description": cred["description"],
                 "timestamp": tx.timestamp,
                 "spent": '0',
               }
