@@ -13,7 +13,7 @@ from app.cb import get_cb_api_key
 from utils.layer import in_layer_1
 from utils.user import user_exist
 from error import InvalidUsage, InternalError
-from db import transaction
+from db import transaction, connect
 
 PATH_ACCOUNT = "./accounts/"
 
@@ -53,94 +53,99 @@ def check_token_in_history(username, txn_hash):
     return transaction.select_by_hash(txn_hash)["receiver"] == username
 
 def layer_to_layer(api_key, data):
-    if data["txn"] != "":
-        if check_token_in_history(data["sen"], data["txn"]) == False:
-            raise InvalidUsage("Token not found.", 404)
-
-    # Load basic token cred
-    cred = load_token_json_obj()
-
-    # Set method
-    cred["method"] = data["method"]
-
-    # Get/Set sender DID ID
-    did = DID()
-    id_sender = did.get_DID_from_username(data["sen"])
-    cred["sen"] = id_sender
-
-    # Check receiver exist
-    if not user_exist(data["rev"]):
-        raise InvalidUsage("Receiver does not exist", 404)
-
-    # Get/Set receiver DID ID
-    id_receiver = did.get_DID_from_username(data["rev"])
-    cred["rev"] = id_receiver
-
-    # Get seed
-    seed = ""
-    if data["method"] == "1":
+    try:
+        connect.start_commit()
         if data["txn"] != "":
-            raise InvalidUsage("Txn should be empty.", 400)
-        if data["sen"] != "cb":
-            raise InvalidUsage("Permission denied.", 403)
-        if not in_layer_1(data["rev"]):
-            raise InvalidUsage("User is not in the layer1 list.", 403)
-        # Method 1 (CB to layer-1) or create a new branch
-        seed = new_seed(data["sen"])
-    else:
-        # Method 2 (layer to layer)
-        # Decrypt sender enseed
-        if data["txn"] == "":
-            raise InvalidUsage("Invalid token", 400) 
+            if check_token_in_history(data["sen"], data["txn"]) == False:
+                raise InvalidUsage("Token not found.", 404)
 
-        enseed = get_txn_enseed(data["txn"])
+        # Load basic token cred
+        cred = load_token_json_obj()
 
-        if enseed == "":
-            raise InvalidUsage("Invalid token", 400)
+        # Set method
+        cred["method"] = data["method"]
 
-        seed = decrypt_with_pri_key(data["sen"], api_key, enseed)
+        # Get/Set sender DID ID
+        did = DID()
+        id_sender = did.get_DID_from_username(data["sen"])
+        cred["sen"] = id_sender
 
-    # Get receiver public key
-    receiver_pub_key = did.get_pub_key_by_DID(cred["rev"])
+        # Check receiver exist
+        if not user_exist(data["rev"]):
+            raise InvalidUsage("Receiver does not exist", 404)
 
-    # Encrypt seed
-    enseed = encrypt_with_pub_key(receiver_pub_key, seed)
-        
-    # Set enseed
-    cred["enseed"] = enseed
+        # Get/Set receiver DID ID
+        id_receiver = did.get_DID_from_username(data["rev"])
+        cred["rev"] = id_receiver
 
-    # Generate address
-    address = generate_new_address(seed)
-    cred["address"] = address
+        # Get seed
+        seed = ""
+        if data["method"] == "1":
+            if data["txn"] != "":
+                raise InvalidUsage("Txn should be empty.", 400)
+            if data["sen"] != "cb":
+                raise InvalidUsage("Permission denied.", 403)
+            if not in_layer_1(data["rev"]):
+                raise InvalidUsage("User is not in the layer1 list.", 403)
+            # Method 1 (CB to layer-1) or create a new branch
+            seed = new_seed(data["sen"])
+        else:
+            # Method 2 (layer to layer)
+            # Decrypt sender enseed
+            if data["txn"] == "":
+                raise InvalidUsage("Invalid token", 400) 
 
-    ## Send to Tangle
-    bundle = send_transfer(cred, address, seed)
-    # hash_txn = get_txn_hash_from_bundle(bundle.hash)
-    txn = None
-    for tx in bundle.transactions:
-        msg = find_transaction_message(tx.hash)
-        if msg == json.dumps(cred):
-            txn = tx
-            break
-    if txn == None:
-        raise InternalError("Internal server error", 500)
+            enseed = get_txn_enseed(data["txn"])
 
-    ## Insert into database
-    obj = {
-            "hash": str(txn.hash),
-            "sender": data["sen"],
-            "receiver": data["rev"],
-            "description": json.dumps(cred),
-            "timestamp": tx.timestamp,
-            "spent": '0',
-          }
-    transaction.insert(obj)
-    hash_txn = str(tx.hash)
+            if enseed == "":
+                raise InvalidUsage("Invalid token", 400)
+
+            seed = decrypt_with_pri_key(data["sen"], api_key, enseed)
+
+        # Get receiver public key
+        receiver_pub_key = did.get_pub_key_by_DID(cred["rev"])
+
+        # Encrypt seed
+        enseed = encrypt_with_pub_key(receiver_pub_key, seed)
+            
+        # Set enseed
+        cred["enseed"] = enseed
+
+        # Generate address
+        address = generate_new_address(seed)
+        cred["address"] = address
+
+        ## Send to Tangle
+        bundle = send_transfer(cred, address, seed)
+        # hash_txn = get_txn_hash_from_bundle(bundle.hash)
+        txn = None
+        for tx in bundle.transactions:
+            msg = find_transaction_message(tx.hash)
+            if msg == json.dumps(cred):
+                txn = tx
+                break
+        if txn == None:
+            raise InternalError("Internal server error", 500)
+
+        ## Insert into database
+        obj = {
+                "hash": str(txn.hash),
+                "sender": data["sen"],
+                "receiver": data["rev"],
+                "description": json.dumps(cred),
+                "timestamp": tx.timestamp,
+                "spent": '0',
+              }
+        transaction.insert(obj)
+        hash_txn = str(tx.hash)
 
 
-    ## Update transaction spent status
-    if data["txn"] != "" and data["method"] != "1":
-        transaction.spend_transaction(data["txn"])
+        ## Update transaction spent status
+        if data["txn"] != "" and data["method"] != "1":
+            transaction.spend_transaction(data["txn"])
+        connect.end_commit()
+    finally:
+        connect.close()
 
     return hash_txn
 

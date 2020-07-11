@@ -4,7 +4,7 @@ import iota
 from app.rsa import gen_key_pair
 from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message 
-from db import user
+from db import user, connect
 from utils.user import make_password_hash, user_exist
 from error import InvalidUsage
 
@@ -18,42 +18,47 @@ class DID():
         return
 
     def new_did(self, x_api_key, data):
-        # Check username exist
-        if user_exist(data["name"]):
-            raise InvalidUsage("Account already exist", 409)
+        try:
+            connect.start_commit()
+            # Check username exist
+            if user_exist(data["name"]):
+                raise InvalidUsage("Account already exist", 409)
 
-        if data["pub_key"] == "":
-            pub_key, pri_key = gen_key_pair()
-            data["pub_key"] = pub_key
+            if data["pub_key"] == "":
+                pub_key, pri_key = gen_key_pair()
+                data["pub_key"] = pub_key
 
-        ## Send to Tangle
-        bundle = send_transfer(data, receiver_address)
-        # hash_txn = get_txn_hash_from_bundle(hash_bundle)
-        txn = None
-        for tx in bundle.transactions:
-            msg = find_transaction_message(tx.hash)
-            if msg == json.dumps(data):
-                txn = tx
-                break
-        if txn == None:
-            raise InvalidUsage("Internal server error", 500)
-        hash_txn = str(tx.hash)
-        
-        ## Insert into database
-        user_obj = {
-            "username": data["name"],
-            "hash": hash_txn,
-            "created_at": txn.timestamp,
-            "description": data["description"],
-            "api_key": make_password_hash(x_api_key),
-            "layer": 0 if data["name"] == "cb" else 2,
-            "public_key": pub_key,
-            "private_key": pri_key
-        }
-        user.insert(user_obj)
+            ## Send to Tangle
+            bundle = send_transfer(data, receiver_address)
+            # hash_txn = get_txn_hash_from_bundle(hash_bundle)
+            txn = None
+            for tx in bundle.transactions:
+                msg = find_transaction_message(tx.hash)
+                if msg == json.dumps(data):
+                    txn = tx
+                    break
+            if txn == None:
+                raise InvalidUsage("Internal server error", 500)
+            hash_txn = str(tx.hash)
+            
+            ## Insert into database
+            user_obj = {
+                "username": data["name"],
+                "hash": hash_txn,
+                "created_at": txn.timestamp,
+                "description": data["description"],
+                "api_key": make_password_hash(x_api_key),
+                "layer": 0 if data["name"] == "cb" else 2,
+                "public_key": pub_key,
+                "private_key": pri_key
+            }
+            user.insert(user_obj)
 
-        ## Write Profile
-        data["id"] = hash_txn
+            ## Write Profile
+            data["id"] = hash_txn
+            connect.end_commit()
+        finally:
+            connect.close()
         
         return hash_txn
 
