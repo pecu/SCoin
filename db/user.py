@@ -18,3 +18,14 @@ def select_by_timestamp(start, end):
     ret = c.fetchall()
     db.close()
     return ret
+
+def query(target, value):
+    db = connect.connectdb()
+    c = db.cursor()
+    sql_script = "SELECT * FROM users WHERE " + target
+    c.execute(sql_script + """ = (%s);""", (value, ))
+    ret = c.fetchall()
+    db.close()
+    if len(ret) == 0:
+        return 0;
+    return ret;
