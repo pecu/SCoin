@@ -16,5 +16,5 @@ def import_account():
             raise InvalidUsage("Account not found", 404)
         if res == 2:
             raise InvalidUsage("Incorrect api key", 403)
-        return 'Account authenticated';
+        return 'Account authenticated'
 

@@ -36,7 +36,7 @@ def get_users_by_timestamp():
 
     for usr in users:
         obj = {
-                "username": usr["name"],
+                "username": usr["username"],
                 "hash": usr["hash"],
                 "created_at": usr["created_at"],
                 "description": usr["description"]

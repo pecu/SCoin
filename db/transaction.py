@@ -18,17 +18,17 @@ def select_by_timestamp(start, end):
 
 def select_by_hash(hash):
     def f(hash, c):
-        c.execute("SELECT * FROM transactions WHERE hash = (%s);", (hash, ))
+        c.execute("SELECT * FROM transactions WHERE hash = (%s);", (hash,))
         return c.fetchone()
     return wrapper(f, hash)
 
 def select_unspent_by_username(username):
     def f(hash, c):
-        c.execute("SELECT * FROM transactions WHERE receiver = (%s) AND spent = '0';", (username, ))
+        c.execute("SELECT * FROM transactions WHERE receiver = (%s) AND spent = '0';", (username,))
         return c.fetchall()
     return wrapper(f, hash)
 
 def spend_transaction(hash):
     def f(hash, c):
-        c.execute("UPDATE transactions SET spent = '1' WHERE hash = (%s);", (hash, ))
+        c.execute("UPDATE transactions SET spent = '1' WHERE hash = (%s);", (hash,))
     return wrapper(f, hash)
