@@ -11,7 +11,7 @@ def user_exist(username):
     return True
 
 def get_total_user():
-    return len(os.listdir("accounts/"))
+    return user.get_user_amount()
 
 def make_salt(length=10):
     return "".join(random.choice(string.ascii_letters) for _ in range(length))

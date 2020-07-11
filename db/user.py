@@ -44,3 +44,9 @@ def select_by_layer(layer, c=None):
         c.execute("SELECT * FROM users WHERE layer = (%s);", (layer,))
         return c.fetchall()
     return wrapper(f, layer)()
+
+def get_user_amount(c=None):
+    def f(c):
+        c.execute("SELECT count(*) FROM users;")
+        return c.fetchone()["count"]
+    return wrapper(f)()
