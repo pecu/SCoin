@@ -2,6 +2,7 @@ import os
 import json
 from app.did import DID
 from app.token import layer_to_layer
+from app.cb import get_cb_api_key
 
 def check_alliance(name, x_api_key):
     # Check account reference
@@ -29,10 +30,10 @@ def bridge_cluster(data):
     cred["method"] = "1"
 
     # Description
-    cred["description"] = "Light token"
+    cred["description"] = "Scoin"
 
     # API key
-    api_key_sender = did.get_api_key_by_user("cb")
+    api_key_sender = get_cb_api_key()
 
     # Others
     cred["txn"] = ""
