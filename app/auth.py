@@ -1,6 +1,8 @@
 import os
 from werkzeug.security import generate_password_hash, \
         check_password_hash
+from db import user
+from utils.user import make_password_hash, check_password
 
 # Check API key
 def check_api_key(user, api_key):
@@ -30,12 +32,6 @@ def get_password_hash(username):
     with open("accounts/" + username + "/password.hash", 'r') as outfile:
         return outfile.read()
 
-def check_password(username, password):
-    if check_password_hash(get_password_hash(username), password):
-        return True
-    else:
-        return False
-
 def check_permission(username, api_key):
     if username != ""  and api_key != "":
         if check_api_key(username, api_key) == True:
@@ -44,3 +40,18 @@ def check_permission(username, api_key):
             return False
 
     return False
+
+#0 => user doesn't exist                                                                                              
+#1 => user exist
+#2 => incorrect password
+def check_account(username, api_key):
+    res = user.query('username', username)
+    # user doesn't exist
+    if res == None:
+        return 0;
+    res_pwd = res[0]["api_key"]
+    # user exist
+    if check_password(api_key, res_pwd):
+        return 1;
+    # password incorrect
+    return 2;
