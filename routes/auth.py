@@ -13,7 +13,7 @@ def import_account():
         x_api_key = request.headers.get('X-API-key')
         res = check_account(req_name, x_api_key)
         if res == 0:
-            raise InvalidUsage("Account not found", 403)
+            raise InvalidUsage("Account not found", 404)
         if res == 2:
             raise InvalidUsage("Incorrect api key", 403)
         return 'Account authenticated';

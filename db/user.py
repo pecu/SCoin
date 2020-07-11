@@ -25,6 +25,6 @@ def query(target, value):
     c.execute("""SELECT * FROM users WHERE """ + target + """= (%s);""", (value, ))
     ret = c.fetchall()
     db.close()
-    if len(ret) == 0:
+    if ret == 0:
         return None;
     return ret;
