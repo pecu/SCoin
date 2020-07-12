@@ -2,16 +2,16 @@ import os
 import random
 import string
 import hashlib
+from db import user
 
-def user_exist(user):
-    if user == "":
-        return False
-    if not os.path.isdir("accounts/" + user):
+def user_exist(username):
+    usr = user.select_by_username(username)
+    if (usr == None):
         return False
     return True
 
 def get_total_user():
-    return len(os.listdir("accounts/"))
+    return user.get_user_amount()
 
 def make_salt(length=10):
     return "".join(random.choice(string.ascii_letters) for _ in range(length))

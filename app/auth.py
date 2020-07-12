@@ -1,44 +1,20 @@
 import os
-from werkzeug.security import generate_password_hash, \
-        check_password_hash
 from db import user
 from utils.user import make_password_hash, check_password
+from utils.user import user_exist, check_password
+from db import user
 
 # Check API key
-def check_api_key(user, api_key):
-    if not os.path.isdir("accounts/" + user):
+def check_api_key(username, api_key):
+    if not user_exist(username):
         return False
 
-    api_key_from_file = ""
-    with open("accounts/" + user + "/x-api-key.txt", 'r') as outfile:
-        api_key_from_file = outfile.read().splitlines()[0]
-
-    if api_key_from_file != api_key:
-        return False
-    else:
-        return True
-
-def set_user_password(data):
-    # Check user exist
-    if not os.path.isdir("accounts/" + data["name"]):
-        return False
-
-    with open("accounts/" + data["name"] + "/password.hash", 'w') as outfile:
-        outfile.write(generate_password_hash(data["password"]))
-
-    return True
-
-def get_password_hash(username):
-    with open("accounts/" + username + "/password.hash", 'r') as outfile:
-        return outfile.read()
+    usr = user.select_by_username(username)
+    return check_password(api_key, usr["api_key"])
 
 def check_permission(username, api_key):
     if username != ""  and api_key != "":
-        if check_api_key(username, api_key) == True:
-            return True
-        else:
-            return False
-
+        return check_api_key(username, api_key)
     return False
 
 #0 => user doesn't exist                                                                                              

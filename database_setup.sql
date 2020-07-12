@@ -7,15 +7,23 @@ CREATE TABLE transactions(
   hash VARCHAR(100) NOT NULL UNIQUE,
   sender VARCHAR(100) NOT NULL,
   receiver VARCHAR(100) NOT NULL,
-  description TEXT,
-  timestamp INT
+  description TEXT NOT NULL,
+  timestamp INT NOT NULL,
+  spent boolean NOT NULL
 );
 
 CREATE TABLE users(
   id SERIAL PRIMARY KEY,
   hash VARCHAR(100) NOT NULL UNIQUE,
-  username VARCHAR(100) NOT NULL,
-  created_at INT,
-  description TEXT,
-  password VARCHAR(200) NOT NULL
+  username VARCHAR(100) NOT NULL UNIQUE,
+  created_at INT NOT NULL,
+  description TEXT NOT NULL,
+  api_key VARCHAR(200) NOT NULL,
+  layer smallint NOT NULL,
+  public_key VARCHAR(1200) NOT NULL,
+  private_key VARCHAR(1200) NOT NULL
 );
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO scoin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO scoin;
+GRANT ALL PRIVILEGES ON DATABASE scoin TO scoin;

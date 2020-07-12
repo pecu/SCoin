@@ -4,6 +4,9 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Hash import SHA256
 from base64 import b64encode, b64decode
 import binascii
+from db import user
+from utils.user import check_password
+from error import InvalidUsage, InternalError
 
 def bin2hex(bin_str):
     return binascii.hexlify(bin_str)
@@ -30,19 +33,14 @@ def encrypt_with_pub_key(pub_key, data):
 
     return encrypted
 
-def decrypt_with_pri_key(user, user_api_key, data):
+def decrypt_with_pri_key(username, user_api_key, data):
     # Check API key
-    with open("accounts/" + user + "/x-api-key.txt", 'r') as outfile:
-        api_key = outfile.read()
-        if api_key != user_api_key:
-            return ""
+    usr = user.select_by_username(username)
+    if not check_password(user_api_key, usr["api_key"]):
+        raise InvalidUsage("Permission denied.", 403)
 
     # Decrypt
-    private_key = ""
-    decrypted = "" 
-    with open("accounts/" + user + "/private.pem", 'r') as outfile:
-        private_key = outfile.read()
-
+    private_key = usr["private_key"]
     privatekey = RSA.importKey(private_key)
     decryptor = PKCS1_OAEP.new(privatekey)
 
@@ -55,6 +53,6 @@ def decrypt_with_pri_key(user, user_api_key, data):
     try:
         decrypted = decryptor.decrypt(encrypted)
     except:
-        return ""
+        raise InternalError("Decrypt failed.", 500)
 
     return decrypted.decode()

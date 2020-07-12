@@ -15,8 +15,7 @@ def set_layer1():
 
         ## Set layer-1
         username = request.args.get('username')
-        if set_layer_1(username) == False:
-            raise InvalidUsage("No such account or account already exist", 400)
+        set_layer_1(username)
 
     return "OK"
 
