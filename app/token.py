@@ -19,9 +19,6 @@ PATH_ACCOUNT = "./accounts/"
 
 def new_seed(user):
     seed = ''.join(random.choice(string.ascii_uppercase + "9") for _ in range(81))
-    with open(PATH_ACCOUNT + user + "/seed.txt", 'a') as outfile:
-        outfile.write(seed + "\n")
-
     return seed 
 
 def load_token_json_obj():
