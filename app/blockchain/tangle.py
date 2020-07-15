@@ -3,7 +3,7 @@ from iota import Iota, ProposedTransaction, Address, TryteString, Tag, Transacti
 from iota.trits import trits_from_int
 from app.blockchain.config import SEED, DEPTH, MIN_WEIGHT_MAGNITUDE, NODE_URL
 
-txn_tag = "ZHUSHANEID"
+txn_tag = "SCOIN"
 value = 0
 
 def send_transfer(data, receiver_address, seed = SEED):

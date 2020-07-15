@@ -4,9 +4,10 @@ import iota
 from app.rsa import gen_key_pair
 from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message 
-from db import user
-from utils.user import make_password_hash
+from db import user, connect
+from utils.user import make_password_hash, user_exist
 from error import InvalidUsage
+
 
 
 PATH_ACCOUNT = "./accounts/"
@@ -17,71 +18,55 @@ class DID():
         return
 
     def new_did(self, x_api_key, data):
-        # Check username exist
-        if os.path.isdir(PATH_ACCOUNT + data["name"]):
-            raise InvalidUsage("Account already exist", 409)
+        try:
+            connect.start_commit()
+            # Check username exist
+            if user_exist(data["name"]):
+                raise InvalidUsage("Account already exist", 409)
 
-        # create DID
+            if data["pub_key"] == "":
+                pub_key, pri_key = gen_key_pair()
+                data["pub_key"] = pub_key
 
-        ## Create account folder on local
-        os.mkdir(PATH_ACCOUNT + data["name"])
+            ## Send to Tangle
+            bundle = send_transfer(data, receiver_address)
+            txn = None
+            for tx in bundle.transactions:
+                msg = find_transaction_message(tx.hash)
+                if msg == json.dumps(data):
+                    txn = tx
+                    break
+            if txn == None:
+                raise InvalidUsage("Internal server error", 500)
+            hash_txn = str(tx.hash)
+            
+            ## Insert into database
+            user_obj = {
+                "username": data["name"],
+                "hash": hash_txn,
+                "created_at": txn.timestamp,
+                "description": data["description"],
+                "api_key": make_password_hash(x_api_key),
+                "layer": 0 if data["name"] == "cb" else 2,
+                "public_key": pub_key,
+                "private_key": pri_key
+            }
+            user.insert(user_obj)
 
-        ## Save hash of password
-        with open(PATH_ACCOUNT + data["name"] + "/x-api-key.txt", 'w') as outfile:
-            outfile.write(x_api_key)
-
-        ## Save key-pair
-        if data["pub_key"] == "":
-            pub_key, pri_key = gen_key_pair()
-            data["pub_key"] = pub_key
-            with open(PATH_ACCOUNT + data["name"] + "/private.pem", 'w') as outfile:
-                outfile.write(pri_key)
-        
-        ## Send to Tangle
-        bundle = send_transfer(data, receiver_address)
-        # hash_txn = get_txn_hash_from_bundle(hash_bundle)
-        txn = None
-        for tx in bundle.transactions:
-            msg = find_transaction_message(tx.hash)
-            if msg == json.dumps(data):
-                txn = tx
-                break
-        if txn == None:
-            raise InvalidUsage("Internal server error", 500)
-        hash_txn = str(tx.hash)
-        
-        ## Insert into database
-        user_obj = {
-            "username": data["name"],
-            "hash": hash_txn,
-            "created_at": txn.timestamp,
-            "description": data["description"],
-            "password": make_password_hash(x_api_key)
-        }
-        user.insert(user_obj)
-
-        ## Write Profile
-        data["id"] = hash_txn
-        with open(PATH_ACCOUNT + data["name"] + "/profile.json", 'w') as outfile:
-            json.dump(data, outfile)
+            ## Write Profile
+            data["id"] = hash_txn
+            connect.end_commit()
+        finally:
+            connect.close()
         
         return hash_txn
 
     def get_DID_from_username(self, username):
-        with open(PATH_ACCOUNT + username + "/profile.json", 'r') as outfile:
-            obj_did = json.load(outfile)
-            return obj_did["id"]
+        return user.select_by_username(username)["hash"]
+
 
     def get_pub_key_by_DID(self, DID_id):
-        public_key = ""
-        msg_txn = find_transaction_message(DID_id)
-        obj_msg = json.loads(msg_txn)
-
-        return obj_msg["pub_key"]
-
-    def get_api_key_by_user(self, user):
-        with open(PATH_ACCOUNT + user + "/x-api-key.txt", 'r') as outfile:
-            return outfile.read()
+        return user.select_by_hash(DID_id)["public_key"]
 
     def get_cluster(self):
         cluster = {"cb":"","layer-1":[]}
@@ -91,11 +76,8 @@ class DID():
         did_cb = self.get_DID_from_username("cb")
         cluster["cb"] = did_cb
 
-        # Append layer-1
-        with open("cluster/layer_1.txt", 'r') as outfile:
-            for line in outfile:
-                stripped_line = line.strip()
-                layer_did = self.get_DID_from_username(stripped_line)
-                cluster["layer-1"].append(layer_did)
+        users = user.select_by_layer(1)
+        for usr in users:
+            cluster["layer-1"].append(usr["hash"])
 
         return cluster
