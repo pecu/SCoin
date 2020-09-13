@@ -127,7 +127,8 @@ def layer_to_layer(api_key, data):
                 "receiver": data["rev"],
                 "description": cred["description"],
                 "timestamp": tx.timestamp,
-                "spent": '0',
+                "spent": "0",
+                "raw_transaction": str(txn.as_tryte_string())
               }
         transaction.insert(obj)
         hash_txn = str(tx.hash)

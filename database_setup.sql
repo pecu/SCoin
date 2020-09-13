@@ -9,7 +9,8 @@ CREATE TABLE transactions(
   receiver VARCHAR(100) NOT NULL,
   description TEXT NOT NULL,
   timestamp INT NOT NULL,
-  spent boolean NOT NULL
+  spent boolean NOT NULL,
+  raw_transaction TEXT
 );
 
 CREATE TABLE users(
