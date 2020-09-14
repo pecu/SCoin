@@ -54,6 +54,9 @@ def layer_to_layer_multiple(api_key, data):
         if "" in data["txn"]:
             raise InvalidUsage("Invalid token", 400)
 
+        if len(data["txn"]) > len(set(data["txn"])):
+            raise InvalidUsage("Repeated token is not allowed", 400)
+
         connect.start_commit()
 
         for txn in data["txn"]:
@@ -101,6 +104,7 @@ def layer_to_layer_multiple(api_key, data):
                         "description": cred["description"],
                         "timestamp": tx.timestamp,
                         "spent": '0',
+                        "raw_transaction": str(txn.as_tryte_string()),
                     }
                 transaction.insert(obj)
                 tx_hashs.append(str(tx.hash))
