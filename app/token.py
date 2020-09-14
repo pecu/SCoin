@@ -104,7 +104,7 @@ def layer_to_layer_multiple(api_key, data):
                         "description": cred["description"],
                         "timestamp": tx.timestamp,
                         "spent": '0',
-                        "raw_transaction": str(txn.as_tryte_string()),
+                        "raw_transaction": str(tx.as_tryte_string()),
                     }
                 transaction.insert(obj)
                 tx_hashs.append(str(tx.hash))

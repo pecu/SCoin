@@ -143,7 +143,31 @@ curl https://eid.townway.com.tw:8888/send_token \
     -H 'X-API-key: 95efe65ae128e4562fdba2292b2b3f190845c503' \
     -d '{"sen": "john", "rev": "mary", "method": "2", "description": "Light token" , "txn":"X99KHARMXNVFRDSKBIBFVBYSXRDMZRLYUHWNET9PJHXPIJUWEKWVQWGPHABKYRTKYVJXJWULDEKE99999"}'
 ```
+### Send multiple tokens.
+Send tokens.
+```
+POST /send_tokens
+```
+#### Parameters
+| Name           | Type    | Description                                                                                                                                                                                                 |
+| -------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| X-API-key   | string | The sender or CB eID API key (pass with HTTP header) |
+| sen         | string | The sender CB ID |
+| rev         | string | Receiver ID |
+| method      | string | Transaction method, **only support 2** |
+| description | string | Transaction comment |
+| txn         | string[] | Array of Token txn hash |
+#### Response
+Token transactions hash
 
+#### Example
+```shell
+curl https://eid.townway.com.tw:8888/send_tokens \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H 'X-API-key: 95efe65ae128e4562fdba2292b2b3f190845c503' \
+    -d '{"sen": "bchen", "rev": "john", "method": "2", "description": "Light token", "txn":["VQDMVAOUMFPMADDJHGMVKGQZWDDBPLJXMKPMGOHQDBMQFYTVNMKZGSZITNFBRIH9WFOBT9XBTEEXA9999","DW9OVOH9FZSOKY9TPWAWYSCVOUZQLYHYTQZIZSMFFXSTXJAQCMBWTSJLDXRUBDDGZLOYAWRZXRFMA9999"]}'
+```
 ### Get balance
 Get account token balance.
 
