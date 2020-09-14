@@ -90,16 +90,20 @@ def layer_to_layer_multiple(api_key, data):
         bundle = send_transfers(cred)
         tx_hashs = []
         for tx in bundle.transactions:
-            obj = {
-                    "hash": str(tx.hash),
-                    "sender": data["sen"],
-                    "receiver": data["rev"],
-                    "description": cred["description"],
-                    "timestamp": tx.timestamp,
-                    "spent": '0',
-                }
-            transaction.insert(obj)
-            tx_hashs.append(str(tx.hash))
+            msg = find_transaction_message(tx.hash)
+            tx_from_bundle = json.loads(msg)
+            # check tx was sent by req
+            if tx_from_bundle["enseed"] in cred["enseed"]:
+                obj = {
+                        "hash": str(tx.hash),
+                        "sender": data["sen"],
+                        "receiver": data["rev"],
+                        "description": cred["description"],
+                        "timestamp": tx.timestamp,
+                        "spent": '0',
+                    }
+                transaction.insert(obj)
+                tx_hashs.append(str(tx.hash))
 
         for txn in data["txn"]:
             transaction.spend_transaction(txn)
