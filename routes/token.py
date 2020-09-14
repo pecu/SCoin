@@ -1,5 +1,5 @@
 from flask import request, Blueprint
-from app.token import layer_to_layer, check_token_valid, get_user_balance, \
+from app.token import layer_to_layer_multiple, layer_to_layer, check_token_valid, get_user_balance, \
         get_txn_enseed, snapshot
 from app.auth import check_permission
 from utils.user import user_exist
@@ -24,6 +24,24 @@ def send():
         result = layer_to_layer(x_api_key, data)
 
     return result
+
+@token_blueprint.route('/send_tokens', methods=['POST'])
+def send_tokens():
+    if request.method == 'POST':
+        data = request.get_json()
+        x_api_key = request.headers.get('X-API-key')
+
+        if not user_exist(data["sen"]):
+            raise InvalidUsage("Sender does not exist.", 404)
+
+        # Permission check
+        if not check_permission(data["sen"], x_api_key):
+            raise InvalidUsage("Permission deny.", 403)
+
+        # Transaction
+        result = layer_to_layer_multiple(x_api_key, data)
+
+    return "\n".join(result)
 
 @token_blueprint.route('/verify_token', methods=['POST'])
 def verify_token():
