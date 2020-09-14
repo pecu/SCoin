@@ -33,6 +33,42 @@ def send_transfer(data, receiver_address, seed = SEED):
 
     return bundle['bundle']
 
+def send_transfers(data):
+    # Iota instance
+    api = Iota(NODE_URL, SEED)
+    prepared_transferes = []
+
+    for enseed, address in zip(data["enseed"], data["address"]):
+        # Txn description
+        txn = ProposedTransaction(
+            address = Address(address),
+            message = TryteString.from_string(json.dumps({
+                "sen": data["sen"],
+                "rev": data["rev"],
+                "method": data["method"],
+                "description": data["description"],
+                "enseed": enseed,
+                "address": address,
+            })),
+            tag = Tag(txn_tag),
+            value = value,
+        )
+
+        prepared_transferes.append(txn)
+
+    # Send transaction
+    bundle = ""
+    try:
+        bundle = api.send_transfer(
+            depth = DEPTH,
+            transfers = prepared_transferes,
+            min_weight_magnitude = MIN_WEIGHT_MAGNITUDE
+        )
+    except Exception as e:
+        print(e)
+
+    return bundle['bundle']
+
 def find_transaction_message(hash_txn):
     # Iota instance
     api = Iota(NODE_URL)

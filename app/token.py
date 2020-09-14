@@ -6,7 +6,7 @@ import os
 import iota
 from app.did import DID
 from app.rsa import encrypt_with_pub_key, decrypt_with_pri_key
-from app.blockchain.tangle import send_transfer, get_txn_hash_from_bundle, \
+from app.blockchain.tangle import send_transfers, send_transfer, get_txn_hash_from_bundle, \
         find_transaction_message, generate_new_address, get_account_data
 from app.auth import check_api_key
 from app.cb import get_cb_api_key
@@ -42,6 +42,72 @@ def get_txn_enseed(txn_hash):
 
 def check_token_in_history(username, txn_hash):
     return transaction.select_by_hash(txn_hash)["receiver"] == username
+
+def layer_to_layer_multiple(api_key, data):
+    try:
+        if data["method"] != "2":
+            raise InvalidUsage("Only support method 2.", 404)
+
+        if not user_exist(data["rev"]):
+            raise InvalidUsage("Receiver does not exist", 404)
+
+        if "" in data["txn"]:
+            raise InvalidUsage("Invalid token", 400)
+
+        connect.start_commit()
+
+        for txn in data["txn"]:
+            if not check_token_in_history(data["sen"], txn):
+                raise InvalidUsage("Token {} not found.".format(txn), 404)
+
+        did = DID()
+        cred = load_token_json_obj()
+        id_sender = did.get_DID_from_username(data["sen"])
+        id_receiver = did.get_DID_from_username(data["rev"])
+        receiver_pub_key = did.get_pub_key_by_DID(id_receiver)
+
+        seeds = [] 
+        enseed = []
+        enseeds_sender = []
+        address = []
+        for txn in data["txn"]:
+            enseeds_sender.append(get_txn_enseed(txn))
+
+        for enseed_sender in enseeds_sender:
+            seeds.append(decrypt_with_pri_key(data["sen"], api_key, enseed_sender))
+
+        for seed in seeds:
+            enseed.append(encrypt_with_pub_key(receiver_pub_key, seed))
+            address.append(generate_new_address(seed))
+
+        cred["method"] = data["method"]
+        cred["description"] = data["description"]
+        cred["sen"] = id_sender
+        cred["rev"] = id_receiver
+        cred["enseed"] = enseed
+        cred["address"] = address
+
+        bundle = send_transfers(cred)
+        tx_hashs = []
+        for tx in bundle.transactions:
+            obj = {
+                    "hash": str(tx.hash),
+                    "sender": data["sen"],
+                    "receiver": data["rev"],
+                    "description": cred["description"],
+                    "timestamp": tx.timestamp,
+                    "spent": '0',
+                }
+            transaction.insert(obj)
+            tx_hashs.append(str(tx.hash))
+
+        for txn in data["txn"]:
+            transaction.spend_transaction(txn)
+        connect.end_commit()
+    finally:
+        connect.close()
+
+    return tx_hashs
 
 def layer_to_layer(api_key, data):
     try:
