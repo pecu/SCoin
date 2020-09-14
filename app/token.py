@@ -46,7 +46,7 @@ def check_token_in_history(username, txn_hash):
 def layer_to_layer_multiple(api_key, data):
     try:
         if data["method"] != "2":
-            raise InvalidUsage("Only support method 2.", 404)
+            raise InvalidUsage("Only support method 2.", 400)
 
         if not user_exist(data["rev"]):
             raise InvalidUsage("Receiver does not exist", 404)
