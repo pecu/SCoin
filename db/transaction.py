@@ -5,8 +5,8 @@ import psycopg2.extras
 def insert(obj):
     def f(obj, c):
         c.execute("""INSERT INTO transactions 
-                  (hash, sender, receiver, description, timestamp, spent) VALUES (%s, %s, %s, %s, %s, %s);""",
-                  (obj["hash"], obj["sender"], obj["receiver"], obj["description"], obj["timestamp"], obj["spent"]))
+                  (hash, sender, receiver, description, timestamp, spent, raw_transaction) VALUES (%s, %s, %s, %s, %s, %s, %s);""",
+                  (obj["hash"], obj["sender"], obj["receiver"], obj["description"], obj["timestamp"], obj["spent"], obj["raw_transaction"]))
     wrapper(f, obj)
 
 
