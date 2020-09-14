@@ -4,7 +4,13 @@
 Zhushan light-token backend
 
 ## Dependency packages
-$ pip3 install pyota flask flask_login flask_cors 
+```
+$ pip3 install pyota flask flask_login flask_cors  
+```
+or with anaconda
+```
+conda env create -f envrionment.yml
+```
 
 ## Quick start
 $ cd tools/
